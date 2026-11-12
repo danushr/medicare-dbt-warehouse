@@ -1,0 +1,7 @@
+medicare:
+  target: duckdb
+  outputs:
+    duckdb:
+      type: duckdb
+      path: "{{ env_var('MEDICARE_DATA_DIR') }}/warehouse.duckdb"
+      threads: 4

@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: stg_cms__inpatient
+    description: One row per hospital, DRG and year, with readable column names and typed numbers.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [provider_ccn, drg_code, data_year]
+    columns:
+      - name: provider_ccn
+        description: CMS Certification Number, the six-character hospital id.
+        data_tests: [not_null]
+      - name: drg_code
+        description: Medicare Severity Diagnosis Related Group, the three-character code Medicare pays by.
+        data_tests: [not_null]
+      - name: data_year
+        data_tests: [not_null]
+      - name: total_discharges
+        description: Medicare stays billed under this DRG. CMS withholds rows with fewer than 11.
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 11

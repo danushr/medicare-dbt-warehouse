@@ -1,0 +1,15 @@
+name: medicare_warehouse
+version: "1.0.0"
+profile: medicare
+
+model-paths: ["models"]
+test-paths: ["dbt_tests"]
+
+models:
+  medicare_warehouse:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table

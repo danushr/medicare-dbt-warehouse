@@ -1,0 +1,129 @@
+version: 2
+
+models:
+  - name: dim_provider
+    description: One row per hospital, carrying the name and address from its most recent year on file.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: provider_key
+        description: Hash of the CCN. Facts join on this.
+        data_type: varchar
+        data_tests: [unique, not_null]
+      - name: provider_ccn
+        data_type: varchar
+        data_tests: [unique, not_null]
+      - name: provider_name
+        data_type: varchar
+        data_tests: [not_null]
+      - name: city
+        data_type: varchar
+      - name: state_code
+        data_type: varchar
+        data_tests: [not_null]
+      - name: zip_code
+        data_type: varchar
+      - name: ruca_code
+        description: Rural-Urban Commuting Area code. 1 is a metropolitan core, 10 is rural.
+        data_type: varchar
+      - name: ruca_description
+        data_type: varchar
+      - name: last_reported_year
+        data_type: integer
+        data_tests: [not_null]
+
+  - name: dim_drg
+    description: One row per DRG, with the description from its most recent year on file.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: drg_key
+        data_type: varchar
+        data_tests: [unique, not_null]
+      - name: drg_code
+        data_type: varchar
+        data_tests: [unique, not_null]
+      - name: drg_description
+        data_type: varchar
+        data_tests: [not_null]
+      - name: last_reported_year
+        data_type: integer
+        data_tests: [not_null]
+
+  - name: fct_inpatient_discharges
+    description: >
+      One row per hospital, DRG and year. Incremental: a run adds only years newer than the
+      latest year already in the table.
+    config:
+      contract:
+        enforced: true
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: avg_medicare_payment <= avg_total_payment
+    columns:
+      - name: discharge_key
+        description: Hash of CCN, DRG code and year.
+        data_type: varchar
+        data_tests: [unique, not_null]
+      - name: provider_key
+        data_type: varchar
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_provider')
+                field: provider_key
+      - name: drg_key
+        data_type: varchar
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_drg')
+                field: drg_key
+      - name: data_year
+        data_type: integer
+        data_tests: [not_null]
+      - name: total_discharges
+        data_type: integer
+        data_tests: [not_null]
+      - name: avg_covered_charges
+        description: Average amount the hospital billed for the stay.
+        data_type: decimal(18,2)
+      - name: avg_total_payment
+        description: Average amount paid from all sources, including the patient's share.
+        data_type: decimal(18,2)
+      - name: avg_medicare_payment
+        description: Average amount Medicare itself paid.
+        data_type: decimal(18,2)
+      - name: total_medicare_payment
+        description: Discharges times the average Medicare payment.
+        data_type: decimal(18,2)
+
+  - name: rpt_state_year_payments
+    description: Hospitals, discharges and Medicare spend per state and year, ready for a dashboard.
+    config:
+      contract:
+        enforced: true
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [state_code, data_year]
+    columns:
+      - name: state_code
+        data_type: varchar
+        data_tests: [not_null]
+      - name: data_year
+        data_type: integer
+        data_tests: [not_null]
+      - name: hospitals
+        data_type: integer
+      - name: total_discharges
+        data_type: bigint
+      - name: total_medicare_payment
+        data_type: decimal(18,2)
+      - name: medicare_payment_per_discharge
+        data_type: decimal(18,2)

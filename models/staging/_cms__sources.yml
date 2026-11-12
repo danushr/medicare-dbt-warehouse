@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: cms
+    description: Medicare Inpatient Hospitals by Provider and Service, one public file per year from data.cms.gov.
+    schema: raw
+    tables:
+      - name: inpatient
+        description: Every yearly file stacked as-is, all columns text, plus the year taken from the file name.
+        columns:
+          - name: Rndrng_Prvdr_CCN
+            data_tests: [not_null]
+          - name: DRG_Cd
+            data_tests: [not_null]
+          - name: data_year
+            data_tests: [not_null]
