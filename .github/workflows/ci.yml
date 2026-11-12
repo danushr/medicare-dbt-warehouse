@@ -11,7 +11,7 @@ jobs:
       MEDICARE_PROJECT_DIR: ${{ github.workspace }}
       DBT_PROJECT_DIR: ${{ github.workspace }}
       DBT_PROFILES_DIR: ${{ github.workspace }}
-      AIRFLOW_HOME: ${{ runner.temp }}/airflow
+      AIRFLOW_HOME: ${{ github.workspace }}/.airflow
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
