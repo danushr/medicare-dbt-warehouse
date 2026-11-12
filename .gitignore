@@ -1,0 +1,15 @@
+.env
+.env.local
+.venv
+__pycache__
+node_modules
+.direnv
+result
+.devenv
+devenv.local.nix
+data/
+target/
+dbt_packages/
+logs/
+.user.yml
+.airflow/
